@@ -8,6 +8,11 @@ class EmployeeBase(BaseModel):
     email: EmailStr
     department: str = Field(..., min_length=2, max_length=100)
 
+class EmployeeCreateRequest(BaseModel):
+    full_name: str = Field(..., min_length=2, max_length=100)
+    email: EmailStr
+    department: str = Field(..., min_length=2, max_length=100)
+
 class EmployeeCreate(EmployeeBase):
     pass
 
@@ -18,6 +23,7 @@ class EmployeeUpdate(BaseModel):
 
 class EmployeeResponse(EmployeeBase):
     id: str = Field(..., alias="_id")
+    is_deleted: bool = False
     created_at: datetime
 
     class Config:

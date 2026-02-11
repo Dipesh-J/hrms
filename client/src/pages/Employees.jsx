@@ -1,20 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useEmployees } from '../hooks/useEmployees';
-import { Trash2, UserPlus, Search, AlertTriangle } from 'lucide-react';
+import { Trash2, UserPlus, Search, AlertTriangle, XCircle } from 'lucide-react';
 import { DEPARTMENTS } from '../constants';
 import '../styles/employees.css';
 
 const Employees = () => {
-    const { employees, loading, error, addEmployee, deleteEmployee } = useEmployees();
+    const { employees, loading, error, nextId, addEmployee, deleteEmployee, fetchNextId, refetch: fetchEmployees } = useEmployees();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [confirmDelete, setConfirmDelete] = useState(null);
+    const [showAll, setShowAll] = useState(false);
+    const [formError, setFormError] = useState('');
+
     const [formData, setFormData] = useState({
-        employee_id: '',
         full_name: '',
         email: '',
         department: '',
     });
+
+    const toggleShowAll = () => {
+        setShowAll((prev) => !prev);
+    };
+
+    useEffect(() => {
+        fetchEmployees(showAll);
+    }, [showAll, fetchEmployees]);
+
+    const openModal = () => {
+        setFormError('');
+        setFormData({ full_name: '', email: '', department: '' });
+        fetchNextId();
+        setIsModalOpen(true);
+    };
+
+    const closeModal = () => {
+        setFormError('');
+        setIsModalOpen(false);
+    };
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -23,12 +45,13 @@ const Employees = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setFormError('');
         try {
             await addEmployee(formData);
-            setIsModalOpen(false);
-            setFormData({ employee_id: '', full_name: '', email: '', department: '' });
+            closeModal();
         } catch (err) {
-            // handled by hook
+            const message = err.response?.data?.detail || 'Failed to add employee';
+            setFormError(typeof message === 'object' ? JSON.stringify(message) : message);
         }
     };
 
@@ -40,28 +63,32 @@ const Employees = () => {
     };
 
     const filteredEmployees = employees.filter((emp) =>
-        emp.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        emp.employee_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        emp.department.toLowerCase().includes(searchTerm.toLowerCase())
+        (emp.full_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (emp.employee_id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (emp.department || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    const renderError = (err) => {
+        if (!err) return null;
+        return typeof err === 'object' ? JSON.stringify(err) : err;
+    };
 
     return (
         <div>
             <div className="flex justify-between items-center mb-lg">
                 <h2>Employees</h2>
-                <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>
+                <button className="btn btn-primary" onClick={openModal}>
                     <UserPlus size={16} />
                     Add Employee
                 </button>
             </div>
 
-            <div className="card mb-md">
+            <div className="card mb-md flex justify-between items-center header-controls-card">
                 <div className="search-bar">
-                    <Search size={18} className="search-icon" aria-hidden="true" />
+                    <Search size={16} className="search-icon" aria-hidden="true" />
                     <input
                         type="text"
-                        placeholder="Search by name, ID, or department\u2026"
-                        className="form-input"
+                        placeholder="Search by name, ID, or department…"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         aria-label="Search employees"
@@ -69,12 +96,23 @@ const Employees = () => {
                         spellCheck={false}
                     />
                 </div>
+
+                <label className="toggle-switch-container">
+                    <input
+                        type="checkbox"
+                        className="toggle-input"
+                        checked={showAll}
+                        onChange={toggleShowAll}
+                    />
+                    <span className="toggle-switch"></span>
+                    <span>Show All</span>
+                </label>
             </div>
 
-            {error && <div className="alert alert-danger mb-md" role="alert">{error}</div>}
+            {error && <div className="alert alert-danger mb-md" role="alert">{renderError(error)}</div>}
 
             {loading && employees.length === 0 ? (
-                <div className="text-center p-xl text-secondary">Loading\u2026</div>
+                <div className="text-center p-xl text-secondary">Loading…</div>
             ) : (
                 <div className="card employee-table-card">
                     <table className="table">
@@ -84,19 +122,25 @@ const Employees = () => {
                                 <th>Name</th>
                                 <th>Email</th>
                                 <th>Department</th>
+                                <th>Status</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {filteredEmployees.length > 0 ? (
                                 filteredEmployees.map((emp) => (
-                                    <tr key={emp._id}>
+                                    <tr key={emp._id} className={emp.is_deleted ? 'row-deleted' : ''}>
                                         <td>{emp.employee_id}</td>
                                         <td style={{ fontWeight: 500 }}>{emp.full_name}</td>
                                         <td>{emp.email}</td>
                                         <td>
-                                            <span className="status-badge present" style={{ backgroundColor: 'var(--primary-light)', color: 'var(--primary-color)' }}>
+                                            <span className="status-badge" style={{ backgroundColor: 'var(--primary-light)', color: 'var(--primary-color)' }}>
                                                 {emp.department}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span className={`status-badge ${emp.is_deleted ? 'deleted' : 'active'}`}>
+                                                {emp.is_deleted ? 'Deleted' : 'Active'}
                                             </span>
                                         </td>
                                         <td>
@@ -104,6 +148,8 @@ const Employees = () => {
                                                 className="btn-icon-danger"
                                                 onClick={() => setConfirmDelete(emp)}
                                                 aria-label={`Delete ${emp.full_name}`}
+                                                disabled={emp.is_deleted}
+                                                style={emp.is_deleted ? { opacity: 0.3, cursor: 'not-allowed' } : {}}
                                             >
                                                 <Trash2 size={16} />
                                             </button>
@@ -112,7 +158,7 @@ const Employees = () => {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="5" className="empty-state">
+                                    <td colSpan="6" className="empty-state">
                                         No employees found.
                                     </td>
                                 </tr>
@@ -122,7 +168,6 @@ const Employees = () => {
                 </div>
             )}
 
-            {/* Add Employee Modal */}
             {isModalOpen && (
                 <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="add-employee-title">
                     <div className="modal card">
@@ -130,7 +175,7 @@ const Employees = () => {
                             <h3 id="add-employee-title">Add New Employee</h3>
                             <button
                                 className="modal-close"
-                                onClick={() => setIsModalOpen(false)}
+                                onClick={closeModal}
                                 aria-label="Close dialog"
                             >
                                 &times;
@@ -143,12 +188,10 @@ const Employees = () => {
                                     type="text"
                                     id="employee_id"
                                     name="employee_id"
-                                    required
                                     className="form-input"
-                                    value={formData.employee_id}
-                                    onChange={handleInputChange}
-                                    placeholder="e.g. EMP001"
-                                    autoComplete="off"
+                                    value={nextId || 'Loading…'}
+                                    readOnly
+                                    aria-readonly="true"
                                 />
                             </div>
                             <div className="form-group">
@@ -196,12 +239,20 @@ const Employees = () => {
                                     ))}
                                 </select>
                             </div>
+
+                            {formError && (
+                                <div className="alert alert-danger" role="alert">
+                                    <XCircle size={16} aria-hidden="true" />
+                                    {renderError(formError)}
+                                </div>
+                            )}
+
                             <div className="flex justify-end gap-sm mt-lg">
-                                <button type="button" className="btn btn-secondary" onClick={() => setIsModalOpen(false)}>
+                                <button type="button" className="btn btn-secondary" onClick={closeModal}>
                                     Cancel
                                 </button>
                                 <button type="submit" className="btn btn-primary" disabled={loading}>
-                                    {loading ? 'Adding\u2026' : 'Add Employee'}
+                                    {loading ? 'Adding…' : 'Add Employee'}
                                 </button>
                             </div>
                         </form>
@@ -209,7 +260,6 @@ const Employees = () => {
                 </div>
             )}
 
-            {/* Delete Confirmation Modal */}
             {confirmDelete && (
                 <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="confirm-delete-title">
                     <div className="modal card confirm-modal">

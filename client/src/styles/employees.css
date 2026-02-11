@@ -3,25 +3,115 @@
    ============================================================ */
 
 /* Search bar */
+/* Search Bar - Sleeker Look */
 .search-bar {
+    display: flex;
+    align-items: center;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 0.35rem 0.75rem;
+    /* Reduced padding for height */
+    transition: all 0.2s ease;
+    width: 100%;
+    max-width: 320px;
+}
+
+.search-bar:focus-within {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.search-icon {
+    color: var(--text-secondary);
+    margin-right: 0.5rem;
+}
+
+.search-bar input {
+    border: none;
+    outline: none;
+    background: transparent;
+    width: 100%;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    padding: 0;
+    /* Remove input padding to control height via container */
+}
+
+/* Header Controls (Search + Toggle) */
+.header-controls {
     display: flex;
     align-items: center;
     gap: var(--spacing-md);
 }
 
-.search-bar .search-icon {
+/* Toggle Switch */
+.toggle-switch-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
     color: var(--text-secondary);
-    flex-shrink: 0;
+    cursor: pointer;
 }
 
-.search-bar .form-input {
-    border: none;
-    box-shadow: none;
-    padding-left: 0;
+.toggle-switch {
+    position: relative;
+    width: 36px;
+    height: 20px;
+    background-color: var(--border-color);
+    border-radius: 20px;
+    transition: background-color 0.2s;
 }
 
-.search-bar .form-input:focus {
-    box-shadow: none;
+.toggle-switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    background-color: white;
+    border-radius: 50%;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-input:checked+.toggle-switch {
+    background-color: var(--primary-color);
+}
+
+.toggle-input:checked+.toggle-switch::after {
+    transform: translateX(16px);
+}
+
+.toggle-input {
+    display: none;
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 0.25rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    display: inline-block;
+}
+
+.status-badge.active {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.status-badge.deleted {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+/* Row styling for deleted employees */
+.row-deleted {
+    opacity: 0.7;
+    background-color: rgba(0, 0, 0, 0.02);
 }
 
 /* Employee table card - remove double border when nesting card + table-container */
@@ -53,7 +143,7 @@
     border: none;
     cursor: pointer;
     transition: background-color var(--transition-fast),
-                color var(--transition-fast);
+        color var(--transition-fast);
 }
 
 .btn-icon-danger:hover {
