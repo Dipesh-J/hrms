@@ -6,17 +6,29 @@ export const useEmployees = () => {
     const [employees, setEmployees] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [nextId, setNextId] = useState('');
 
-    const fetchEmployees = useCallback(async () => {
+    const fetchEmployees = useCallback(async (showDeleted = false) => {
         setLoading(true);
         setError(null);
         try {
-            const response = await api.get(API_ENDPOINTS.EMPLOYEES);
+            const response = await api.get(API_ENDPOINTS.EMPLOYEES, {
+                params: { show_deleted: showDeleted }
+            });
             setEmployees(response.data);
         } catch (err) {
             setError(err.response?.data?.detail || 'Failed to fetch employees');
         } finally {
             setLoading(false);
+        }
+    }, []);
+
+    const fetchNextId = useCallback(async () => {
+        try {
+            const response = await api.get(API_ENDPOINTS.EMPLOYEES_NEXT_ID);
+            setNextId(response.data.next_employee_id);
+        } catch (err) {
+            console.error('Failed to fetch next ID:', err);
         }
     }, []);
 
@@ -28,7 +40,8 @@ export const useEmployees = () => {
             setEmployees((prev) => [...prev, response.data]);
             return response.data;
         } catch (err) {
-            setError(err.response?.data?.detail || 'Failed to add employee');
+            const message = err.response?.data?.detail || 'Failed to add employee';
+            setError(message);
             throw err;
         } finally {
             setLoading(false);
@@ -52,5 +65,5 @@ export const useEmployees = () => {
         fetchEmployees();
     }, [fetchEmployees]);
 
-    return { employees, loading, error, addEmployee, deleteEmployee, refetch: fetchEmployees };
+    return { employees, loading, error, nextId, addEmployee, deleteEmployee, fetchNextId, refetch: fetchEmployees };
 };

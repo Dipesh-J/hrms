@@ -4,8 +4,13 @@ from app.constants import ATTENDANCE_COLLECTION, EMPLOYEES_COLLECTION
 from fastapi import HTTPException
 from datetime import datetime, date, timezone
 
+ACTIVE_FILTER = {"is_deleted": {"$ne": True}}
+
+
 async def mark_attendance(attendance: AttendanceCreate) -> dict:
-    employee = await db.db[EMPLOYEES_COLLECTION].find_one({"employee_id": attendance.employee_id})
+    employee = await db.db[EMPLOYEES_COLLECTION].find_one(
+        {"employee_id": attendance.employee_id, **ACTIVE_FILTER}
+    )
     if not employee:
         raise HTTPException(status_code=404, detail="Employee not found")
 
@@ -30,7 +35,9 @@ async def mark_attendance(attendance: AttendanceCreate) -> dict:
     return created_attendance
 
 async def get_attendance(employee_id: str) -> list[dict]:
-    employee = await db.db[EMPLOYEES_COLLECTION].find_one({"employee_id": employee_id})
+    employee = await db.db[EMPLOYEES_COLLECTION].find_one(
+        {"employee_id": employee_id, **ACTIVE_FILTER}
+    )
     if not employee:
         raise HTTPException(status_code=404, detail="Employee not found")
 

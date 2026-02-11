@@ -18,6 +18,7 @@ export const ROUTES = {
 
 export const API_ENDPOINTS = {
     EMPLOYEES: "/employees/",
+    EMPLOYEES_NEXT_ID: "/employees/next-id",
     ATTENDANCE: "/attendance/",
     ATTENDANCE_SUMMARY_TODAY: "/attendance/summary/today",
 };
