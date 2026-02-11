@@ -1,29 +1,36 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import '../../styles/layout.css';
 
 const Layout = ({ children }) => {
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+
+    const toggleSidebar = useCallback(() => {
+        setSidebarOpen(prev => !prev);
+    }, []);
+
+    const closeSidebar = useCallback(() => {
+        setSidebarOpen(false);
+    }, []);
+
     return (
         <div className="layout">
-            <Sidebar />
-            <Header />
-            <main className="main-content">
-                <div className="container mt-md">
+            <a href="#main-content" className="skip-link">
+                Skip to Main Content
+            </a>
+            <Sidebar isOpen={sidebarOpen} onClose={closeSidebar} />
+            <div
+                className={`sidebar-overlay ${sidebarOpen ? 'open' : ''}`}
+                onClick={closeSidebar}
+                aria-hidden="true"
+            />
+            <Header onToggleSidebar={toggleSidebar} />
+            <main className="main-content" id="main-content">
+                <div className="container">
                     {children}
                 </div>
             </main>
-            <style>{`
-        .layout {
-          min-height: 100vh;
-          background-color: var(--background-color);
-        }
-        
-        .main-content {
-          margin-left: 250px;
-          padding: var(--spacing-lg);
-          min-height: calc(100vh - 64px);
-        }
-      `}</style>
         </div>
     );
 };

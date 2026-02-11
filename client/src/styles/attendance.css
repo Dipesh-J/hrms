@@ -1,0 +1,36 @@
+/* ============================================================
+   Attendance Page
+   ============================================================ */
+.attendance-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-lg);
+    align-items: start;
+}
+
+.attendance-grid .card h3 {
+    margin-bottom: var(--spacing-sm);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* Attendance records section */
+.attendance-records-empty {
+    padding: var(--spacing-xl) var(--spacing-md);
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+/* Override table inside attendance card for compact view */
+.attendance-table-wrap {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+@media (max-width: 768px) {
+    .attendance-grid {
+        grid-template-columns: 1fr;
+    }
+}

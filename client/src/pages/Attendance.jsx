@@ -3,6 +3,7 @@ import { useAttendance } from '../hooks/useAttendance';
 import { useEmployees } from '../hooks/useEmployees';
 import { CheckCircle, XCircle } from 'lucide-react';
 import { ATTENDANCE_STATUSES, SUCCESS_DISMISS_MS } from '../constants';
+import '../styles/attendance.css';
 
 const Attendance = () => {
     const { employees } = useEmployees();
@@ -48,13 +49,14 @@ const Attendance = () => {
         <div>
             <h2>Attendance Management</h2>
 
-            <div className="grid-layout mt-md">
+            <div className="attendance-grid mt-lg">
                 <div className="card">
                     <h3>Mark Attendance</h3>
                     <form onSubmit={handleMarkAttendance} className="mt-md">
                         <div className="form-group">
-                            <label className="form-label">Employee</label>
+                            <label className="form-label" htmlFor="mark-employee">Employee</label>
                             <select
+                                id="mark-employee"
                                 className="form-select"
                                 value={selectedEmployeeId}
                                 onChange={(e) => setSelectedEmployeeId(e.target.value)}
@@ -70,9 +72,10 @@ const Attendance = () => {
                         </div>
 
                         <div className="form-group">
-                            <label className="form-label">Date</label>
+                            <label className="form-label" htmlFor="mark-date">Date</label>
                             <input
                                 type="date"
+                                id="mark-date"
                                 className="form-input"
                                 value={date}
                                 onChange={(e) => setDate(e.target.value)}
@@ -81,8 +84,9 @@ const Attendance = () => {
                         </div>
 
                         <div className="form-group">
-                            <label className="form-label">Status</label>
+                            <label className="form-label" htmlFor="mark-status">Status</label>
                             <select
+                                id="mark-status"
                                 className="form-select"
                                 value={status}
                                 onChange={(e) => setStatus(e.target.value)}
@@ -93,19 +97,30 @@ const Attendance = () => {
                         </div>
 
                         <button type="submit" className="btn btn-primary w-full" disabled={loading || !selectedEmployeeId}>
-                            {loading ? 'Marking...' : 'Mark Attendance'}
+                            {loading ? 'Marking\u2026' : 'Mark Attendance'}
                         </button>
 
-                        {successMessage && <div className="alert alert-success mt-md">{successMessage}</div>}
-                        {error && <div className="alert alert-danger mt-md">{error}</div>}
+                        {successMessage && (
+                            <div className="alert alert-success mt-md" role="status" aria-live="polite">
+                                <CheckCircle size={16} aria-hidden="true" />
+                                {successMessage}
+                            </div>
+                        )}
+                        {error && (
+                            <div className="alert alert-danger mt-md" role="alert">
+                                <XCircle size={16} aria-hidden="true" />
+                                {error}
+                            </div>
+                        )}
                     </form>
                 </div>
 
                 <div className="card">
                     <h3>View Records</h3>
                     <div className="form-group mt-md">
-                        <label className="form-label">Select Employee to View</label>
+                        <label className="form-label" htmlFor="view-employee">Select Employee to View</label>
                         <select
+                            id="view-employee"
                             className="form-select"
                             value={viewEmployeeId}
                             onChange={(e) => setViewEmployeeId(e.target.value)}
@@ -119,92 +134,48 @@ const Attendance = () => {
                         </select>
                     </div>
 
-                    <div className="attendance-list mt-md">
+                    <div className="mt-md">
                         {viewEmployeeId ? (
-                            loading ? <p>Loading records...</p> : (
+                            loading ? (
+                                <p className="attendance-records-empty">Loading records\u2026</p>
+                            ) : (
                                 attendanceRecords.length > 0 ? (
-                                    <table className="table">
-                                        <thead>
-                                            <tr>
-                                                <th>Date</th>
-                                                <th>Status</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {attendanceRecords.map((record) => (
-                                                <tr key={record._id}>
-                                                    <td>{record.date}</td>
-                                                    <td>
-                                                        <span className={`status-badge ${record.status.toLowerCase()}`}>
-                                                            {record.status === ATTENDANCE_STATUSES.PRESENT ? <CheckCircle size={14} /> : <XCircle size={14} />}
-                                                            {record.status}
-                                                        </span>
-                                                    </td>
+                                    <div className="attendance-table-wrap">
+                                        <table className="table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Date</th>
+                                                    <th>Status</th>
                                                 </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                ) : <p className="text-secondary text-center p-md">No records found.</p>
+                                            </thead>
+                                            <tbody>
+                                                {attendanceRecords.map((record) => (
+                                                    <tr key={record._id}>
+                                                        <td>{record.date}</td>
+                                                        <td>
+                                                            <span className={`status-badge ${record.status.toLowerCase()}`}>
+                                                                {record.status === ATTENDANCE_STATUSES.PRESENT
+                                                                    ? <CheckCircle size={14} aria-hidden="true" />
+                                                                    : <XCircle size={14} aria-hidden="true" />
+                                                                }
+                                                                {record.status}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                ) : (
+                                    <p className="attendance-records-empty">No records found.</p>
+                                )
                             )
                         ) : (
-                            <p className="text-secondary text-center p-md">Select an employee to view records.</p>
+                            <p className="attendance-records-empty">Select an employee to view records.</p>
                         )}
                     </div>
                 </div>
             </div>
-
-            <style>{`
-        .grid-layout {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: var(--spacing-lg);
-        }
-        
-        .w-full { width: 100%; }
-        
-        .alert {
-            padding: var(--spacing-md);
-            border-radius: var(--radius-md);
-            margin-bottom: var(--spacing-md);
-            font-size: var(--font-size-sm);
-        }
-        .alert-danger {
-            background-color: #fef2f2;
-            color: var(--danger-color);
-            border: 1px solid #fee2e2;
-        }
-        .alert-success {
-            background-color: #f0fdf4;
-            color: var(--success-color);
-            border: 1px solid #dcfce7;
-        }
-
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-        
-        .status-badge.present {
-            background-color: #dcfce7;
-            color: var(--success-color);
-        }
-        
-        .status-badge.absent {
-            background-color: #fee2e2;
-            color: var(--danger-color);
-        }
-        
-        @media (max-width: 768px) {
-            .grid-layout {
-                grid-template-columns: 1fr;
-            }
-        }
-      `}</style>
         </div>
     );
 };

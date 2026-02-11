@@ -1,0 +1,75 @@
+/* ============================================================
+   Employees Page
+   ============================================================ */
+
+/* Search bar */
+.search-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.search-bar .search-icon {
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+.search-bar .form-input {
+    border: none;
+    box-shadow: none;
+    padding-left: 0;
+}
+
+.search-bar .form-input:focus {
+    box-shadow: none;
+}
+
+/* Employee table card - remove double border when nesting card + table-container */
+.employee-table-card {
+    padding: 0;
+    overflow: hidden;
+}
+
+.employee-table-card .table th:first-child,
+.employee-table-card .table td:first-child {
+    padding-left: var(--spacing-lg);
+}
+
+.employee-table-card .table th:last-child,
+.employee-table-card .table td:last-child {
+    padding-right: var(--spacing-lg);
+}
+
+/* Delete button in table */
+.btn-icon-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: background-color var(--transition-fast),
+                color var(--transition-fast);
+}
+
+.btn-icon-danger:hover {
+    background-color: var(--danger-bg);
+    color: var(--danger-color);
+}
+
+.btn-icon-danger:focus-visible {
+    outline: 2px solid var(--danger-color);
+    outline-offset: 2px;
+}
+
+/* Empty state */
+.empty-state {
+    padding: var(--spacing-xl);
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+}
