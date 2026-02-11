@@ -34,7 +34,7 @@ const Toast = ({ id, type = 'info', message, duration = 3000, onClose }) => {
             borderLeft: '4px solid',
             marginBottom: '10px',
             color: 'var(--text-primary)',
-            animation: 'slideIn 0.3s ease-out',
+            animation: 'slide-in 0.3s ease-out',
         };
 
         switch (type) {

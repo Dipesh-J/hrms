@@ -1,6 +1,6 @@
 @import './styles/index.css';
 
-@keyframes slideIn {
+@keyframes slide-in {
     from {
         transform: translateX(100%);
         opacity: 0;
