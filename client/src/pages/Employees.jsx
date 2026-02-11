@@ -66,6 +66,7 @@ const Employees = () => {
                 setConfirmDelete(null);
             } catch (err) {
                 toastError('Failed to delete employee');
+                setConfirmDelete(null);
             }
         }
     };

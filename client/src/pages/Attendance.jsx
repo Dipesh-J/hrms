@@ -6,29 +6,24 @@ import { CheckCircle, XCircle } from 'lucide-react';
 import { ATTENDANCE_STATUSES, SUCCESS_DISMISS_MS } from '../constants';
 import '../styles/attendance.css';
 
+const getTodayDateString = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
 const Attendance = () => {
     const { employees } = useEmployees();
     const { attendanceRecords, loading, error, fetchAttendance, markAttendance } = useAttendance();
     const { success, error: toastError } = useToast();
 
     const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
-    const [date, setDate] = useState(() => {
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = String(today.getMonth() + 1).padStart(2, '0');
-        const day = String(today.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    });
+    const [date, setDate] = useState(getTodayDateString);
     const [status, setStatus] = useState(ATTENDANCE_STATUSES.PRESENT);
     const [viewEmployeeId, setViewEmployeeId] = useState('');
-    const [successMessage, setSuccessMessage] = useState('');
 
-    useEffect(() => {
-        if (successMessage) {
-            const timer = setTimeout(() => setSuccessMessage(''), SUCCESS_DISMISS_MS);
-            return () => clearTimeout(timer);
-        }
-    }, [successMessage]);
 
     const handleMarkAttendance = async (e) => {
         e.preventDefault();
@@ -39,7 +34,6 @@ const Attendance = () => {
                 status: status
             });
             success('Attendance marked successfully!');
-            setSuccessMessage('Attendance marked successfully!');
             if (viewEmployeeId === selectedEmployeeId) {
                 fetchAttendance(selectedEmployeeId);
             }
@@ -88,13 +82,7 @@ const Attendance = () => {
                                 className="form-input"
                                 value={date}
                                 onChange={(e) => setDate(e.target.value)}
-                                max={(() => {
-                                    const today = new Date();
-                                    const year = today.getFullYear();
-                                    const month = String(today.getMonth() + 1).padStart(2, '0');
-                                    const day = String(today.getDate()).padStart(2, '0');
-                                    return `${year}-${month}-${day}`;
-                                })()}
+                                max={getTodayDateString()}
                                 required
                             />
                         </div>
@@ -116,12 +104,7 @@ const Attendance = () => {
                             {loading ? 'Marking\u2026' : 'Mark Attendance'}
                         </button>
 
-                        {successMessage && (
-                            <div className="alert alert-success mt-md" role="status" aria-live="polite">
-                                <CheckCircle size={16} aria-hidden="true" />
-                                {successMessage}
-                            </div>
-                        )}
+
                         {error && (
                             <div className="alert alert-danger mt-md" role="alert">
                                 <XCircle size={16} aria-hidden="true" />

@@ -31,10 +31,10 @@ const Toast = ({ id, type = 'info', message, duration = 3000, onClose }) => {
             boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
             minWidth: '300px',
             maxWidth: '400px',
-            animation: 'slideIn 0.3s ease-out',
             borderLeft: '4px solid',
             marginBottom: '10px',
             color: 'var(--text-primary)',
+            animation: 'slideIn 0.3s ease-out',
         };
 
         switch (type) {
@@ -58,12 +58,6 @@ const Toast = ({ id, type = 'info', message, duration = 3000, onClose }) => {
             >
                 <X size={16} />
             </button>
-            <style>{`
-                @keyframes slideIn {
-                    from { transform: translateX(100%); opacity: 0; }
-                    to { transform: translateX(0); opacity: 1; }
-                }
-            `}</style>
         </div>
     );
 };

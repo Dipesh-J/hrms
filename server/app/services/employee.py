@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from bson import ObjectId
 from pymongo import ReturnDocument
 from pymongo.errors import DuplicateKeyError
-import re
+
 
 ACTIVE_FILTER = {"is_deleted": {"$ne": True}}
 
@@ -44,11 +44,11 @@ async def create_employee(employee: EmployeeCreateRequest) -> dict:
         except DuplicateKeyError as e:
             if "employee_id" in str(e) or "employee_id_1" in str(e):
                 if attempt == max_retries - 1:
-                    raise HTTPException(status_code=500, detail="Failed to generate unique employee ID after multiple retries")
+                    raise HTTPException(status_code=500, detail="Failed to generate unique employee ID after multiple retries") from None
                 continue
             else:
                 # Likely email duplication if race condition occurred after initial check
-                raise HTTPException(status_code=400, detail="Email already exists")
+                raise HTTPException(status_code=400, detail="Email already exists") from None
 
     created_employee = await db.db[EMPLOYEES_COLLECTION].find_one({"_id": result.inserted_id})
     created_employee["_id"] = str(created_employee["_id"])
