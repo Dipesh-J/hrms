@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAttendance } from '../hooks/useAttendance';
 import { useEmployees } from '../hooks/useEmployees';
+import { useToast } from '../context/ToastContext';
 import { CheckCircle, XCircle } from 'lucide-react';
 import { ATTENDANCE_STATUSES, SUCCESS_DISMISS_MS } from '../constants';
 import '../styles/attendance.css';
@@ -8,9 +9,16 @@ import '../styles/attendance.css';
 const Attendance = () => {
     const { employees } = useEmployees();
     const { attendanceRecords, loading, error, fetchAttendance, markAttendance } = useAttendance();
+    const { success, error: toastError } = useToast();
 
     const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
-    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+    const [date, setDate] = useState(() => {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    });
     const [status, setStatus] = useState(ATTENDANCE_STATUSES.PRESENT);
     const [viewEmployeeId, setViewEmployeeId] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
@@ -30,12 +38,13 @@ const Attendance = () => {
                 date: date,
                 status: status
             });
+            success('Attendance marked successfully!');
             setSuccessMessage('Attendance marked successfully!');
             if (viewEmployeeId === selectedEmployeeId) {
                 fetchAttendance(selectedEmployeeId);
             }
         } catch (err) {
-            // handled by hook
+            toastError(err.response?.data?.detail || 'Failed to mark attendance');
         }
     };
 
@@ -79,6 +88,13 @@ const Attendance = () => {
                                 className="form-input"
                                 value={date}
                                 onChange={(e) => setDate(e.target.value)}
+                                max={(() => {
+                                    const today = new Date();
+                                    const year = today.getFullYear();
+                                    const month = String(today.getMonth() + 1).padStart(2, '0');
+                                    const day = String(today.getDate()).padStart(2, '0');
+                                    return `${year}-${month}-${day}`;
+                                })()}
                                 required
                             />
                         </div>

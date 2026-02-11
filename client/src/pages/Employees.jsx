@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useEmployees } from '../hooks/useEmployees';
+import { useToast } from '../context/ToastContext';
 import { Trash2, UserPlus, Search, AlertTriangle, XCircle } from 'lucide-react';
 import { DEPARTMENTS } from '../constants';
 import '../styles/employees.css';
 
 const Employees = () => {
     const { employees, loading, error, nextId, addEmployee, deleteEmployee, fetchNextId, refetch: fetchEmployees } = useEmployees();
+    const { success, error: toastError } = useToast();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [confirmDelete, setConfirmDelete] = useState(null);
@@ -48,6 +50,7 @@ const Employees = () => {
         setFormError('');
         try {
             await addEmployee(formData);
+            success('Employee added successfully');
             closeModal();
         } catch (err) {
             const message = err.response?.data?.detail || 'Failed to add employee';
@@ -57,8 +60,13 @@ const Employees = () => {
 
     const handleDeleteConfirm = async () => {
         if (confirmDelete) {
-            await deleteEmployee(confirmDelete._id);
-            setConfirmDelete(null);
+            try {
+                await deleteEmployee(confirmDelete._id);
+                success('Employee deleted successfully');
+                setConfirmDelete(null);
+            } catch (err) {
+                toastError('Failed to delete employee');
+            }
         }
     };
 

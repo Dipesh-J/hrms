@@ -4,19 +4,21 @@ from app.constants import EMPLOYEES_COLLECTION, EMPLOYEE_ID_PREFIX, EMPLOYEE_ID_
 from fastapi import HTTPException
 from datetime import datetime, timezone
 from bson import ObjectId
+from pymongo import ReturnDocument
+from pymongo.errors import DuplicateKeyError
 import re
 
 ACTIVE_FILTER = {"is_deleted": {"$ne": True}}
 
 
 async def get_next_employee_id() -> str:
-    cursor = db.db[EMPLOYEES_COLLECTION].find({}, {"employee_id": 1})
-    max_num = 0
-    async for doc in cursor:
-        match = re.search(r'\d+$', doc.get("employee_id", ""))
-        if match:
-            max_num = max(max_num, int(match.group()))
-    next_num = max_num + 1
+    counter = await db.db["counters"].find_one_and_update(
+        {"_id": "employee_id"},
+        {"$inc": {"seq": 1}},
+        upsert=True,
+        return_document=ReturnDocument.AFTER
+    )
+    next_num = counter["seq"]
     return f"{EMPLOYEE_ID_PREFIX}{str(next_num).zfill(EMPLOYEE_ID_PAD_WIDTH)}"
 
 
@@ -27,14 +29,26 @@ async def create_employee(employee: EmployeeCreateRequest) -> dict:
     if existing_email:
         raise HTTPException(status_code=400, detail="Email already exists")
 
-    employee_id = await get_next_employee_id()
-
     employee_dict = employee.model_dump()
-    employee_dict["employee_id"] = employee_id
     employee_dict["is_deleted"] = False
     employee_dict["created_at"] = datetime.now(timezone.utc)
 
-    result = await db.db[EMPLOYEES_COLLECTION].insert_one(employee_dict)
+    max_retries = 5
+    for attempt in range(max_retries):
+        employee_id = await get_next_employee_id()
+        employee_dict["employee_id"] = employee_id
+
+        try:
+            result = await db.db[EMPLOYEES_COLLECTION].insert_one(employee_dict)
+            break
+        except DuplicateKeyError as e:
+            if "employee_id" in str(e) or "employee_id_1" in str(e):
+                if attempt == max_retries - 1:
+                    raise HTTPException(status_code=500, detail="Failed to generate unique employee ID after multiple retries")
+                continue
+            else:
+                # Likely email duplication if race condition occurred after initial check
+                raise HTTPException(status_code=400, detail="Email already exists")
 
     created_employee = await db.db[EMPLOYEES_COLLECTION].find_one({"_id": result.inserted_id})
     created_employee["_id"] = str(created_employee["_id"])

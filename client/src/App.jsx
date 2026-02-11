@@ -5,19 +5,22 @@ import Employees from './pages/Employees';
 import Dashboard from './pages/Dashboard';
 import Attendance from './pages/Attendance';
 import { ROUTES } from './constants';
+import { ToastProvider } from './context/ToastContext';
 
 function App() {
   return (
-    <Router>
-      <Layout>
-        <Routes>
-          <Route path={ROUTES.DASHBOARD} element={<Dashboard />} />
-          <Route path={ROUTES.EMPLOYEES} element={<Employees />} />
-          <Route path={ROUTES.ATTENDANCE} element={<Attendance />} />
-          <Route path="*" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
-        </Routes>
-      </Layout>
-    </Router>
+    <ToastProvider>
+      <Router>
+        <Layout>
+          <Routes>
+            <Route path={ROUTES.DASHBOARD} element={<Dashboard />} />
+            <Route path={ROUTES.EMPLOYEES} element={<Employees />} />
+            <Route path={ROUTES.ATTENDANCE} element={<Attendance />} />
+            <Route path="*" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
+          </Routes>
+        </Layout>
+      </Router>
+    </ToastProvider>
   );
 }
 
