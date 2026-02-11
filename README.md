@@ -65,11 +65,38 @@ Client will start at `http://localhost:5173`.
 - **Dashboard**: Quick overview of employee count.
 - **Responsive Design**: Clean, professional UI.
 
-## Deployment Notes
+## Configuration
 
-- **Frontend**: Deploy `client/dist` to Netlify/Vercel.
-- **Backend**: Deploy `server` to Render/Railway.
-- **Database**: Use MongoDB Atlas and update partial `MONGO_URL` env var.
+### Environment Variables
+
+#### Backend (`server/.env`)
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `MONGO_URL` | MongoDB Connection String | `mongodb+srv://user:pass@cluster.mongodb.net` |
+| `DB_NAME` | Database Name | `hrms_lite` |
+| `CORS_ORIGINS` | Allowed Frontend URLs (comma-separated) | `https://your-app.vercel.app,http://localhost:5173` |
+
+#### Frontend (`client/.env`)
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `VITE_API_URL` | Backend API Base URL | `https://your-api.railway.app/api` |
+
+## Deployment
+
+### Backend (Railway)
+1. Fork/Push this repo to GitHub.
+2. Create a new project on [Railway](https://railway.app/).
+3. Select "Deploy from GitHub repo".
+4. **Settings** -> **Root Directory**: Set to `/server`.
+5. **Variables**: Add `MONGO_URL`, `DB_NAME`, `CORS_ORIGINS`.
+6. Use the generated domain as your API URL.
+
+### Frontend (Vercel)
+1. Create a new project on [Vercel](https://vercel.com/).
+2. Import your GitHub repo.
+3. **Build Settings** -> **Root Directory**: Select `client`.
+4. **Environment Variables**: Add `VITE_API_URL` (Points to Railway URL).
+5. Deploy.
 
 ## Assumptions
 - Single admin user (No authentication implemented as per requirements).
