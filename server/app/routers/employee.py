@@ -7,7 +7,7 @@ router = APIRouter(prefix=EMPLOYEES_ROUTE_PREFIX, tags=["Employees"])
 
 @router.get("/next-id")
 async def get_next_employee_id():
-    next_id = await service.get_next_employee_id()
+    next_id = await service.peek_next_employee_id()
     return {"next_employee_id": next_id}
 
 @router.post("/", response_model=EmployeeResponse, status_code=status.HTTP_201_CREATED)

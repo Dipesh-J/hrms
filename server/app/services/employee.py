@@ -35,7 +35,16 @@ async def sync_employee_counter():
         pass  # Don't fail if counter sync fails
 
 
+async def peek_next_employee_id() -> str:
+    """Get the next employee ID without incrementing counter (for preview only)"""
+    counter = await db.db["counters"].find_one({"_id": "employee_id"})
+    current_seq = counter["seq"] if counter else 0
+    next_num = current_seq + 1
+    return f"{EMPLOYEE_ID_PREFIX}{str(next_num).zfill(EMPLOYEE_ID_PAD_WIDTH)}"
+
+
 async def get_next_employee_id() -> str:
+    """Get next employee ID and increment counter (for actual creation)"""
     counter = await db.db["counters"].find_one_and_update(
         {"_id": "employee_id"},
         {"$inc": {"seq": 1}},
