@@ -11,6 +11,30 @@ from pymongo.errors import DuplicateKeyError
 ACTIVE_FILTER = {"is_deleted": {"$ne": True}}
 
 
+async def sync_employee_counter():
+    """Sync counter with highest existing employee ID to prevent skips"""
+    try:
+        # Find highest existing employee ID number
+        pipeline = [
+            {"$match": {"employee_id": {"$regex": "^EMP\\d+$"}}},
+            {"$addFields": {"num": {"$toInt": {"$substr": ["$employee_id", 3, -1]}}}},
+            {"$sort": {"num": -1}},
+            {"$limit": 1}
+        ]
+        result = await db.db[EMPLOYEES_COLLECTION].aggregate(pipeline).to_list(length=1)
+        
+        if result:
+            highest_num = result[0]["num"]
+            # Update counter to be at least as high as the highest existing ID
+            await db.db["counters"].update_one(
+                {"_id": "employee_id"},
+                {"$max": {"seq": highest_num}},
+                upsert=True
+            )
+    except Exception:
+        pass  # Don't fail if counter sync fails
+
+
 async def get_next_employee_id() -> str:
     counter = await db.db["counters"].find_one_and_update(
         {"_id": "employee_id"},
@@ -33,9 +57,21 @@ async def create_employee(employee: EmployeeCreateRequest) -> dict:
     employee_dict["is_deleted"] = False
     employee_dict["created_at"] = datetime.now(timezone.utc)
 
+    # Sync counter with highest existing ID to prevent gaps
+    await sync_employee_counter()
+
     max_retries = 5
     for attempt in range(max_retries):
         employee_id = await get_next_employee_id()
+        
+        # Check if this ID already exists before trying to insert
+        existing = await db.db[EMPLOYEES_COLLECTION].find_one({"employee_id": employee_id})
+        if existing:
+            # ID already exists, skip to next iteration to get a new ID
+            if attempt == max_retries - 1:
+                raise HTTPException(status_code=500, detail="Failed to generate unique employee ID after multiple retries") from None
+            continue
+            
         employee_dict["employee_id"] = employee_id
 
         try:
