@@ -23,6 +23,7 @@ class EmployeeUpdate(BaseModel):
 
 class EmployeeResponse(EmployeeBase):
     id: str = Field(..., alias="_id")
+    full_name: str = Field(..., alias="name")
     is_deleted: bool = False
     created_at: datetime
 
